@@ -1,0 +1,6 @@
+[Unit]
+Description=Block internet for listed hosts
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/arp-spoof-stop
