@@ -2,5 +2,5 @@
 install_dir=/home/pi/internet-block
 # see /etc/pihole/config.list to see names associated with these IP
 # addresses
-ettercap -Tz --daemon -j $install_dir/lan-hosts --filter $install_dir/internet-block/drop-all.ef \
+ettercap -Tz --daemon --log-msg /dev/stdout -j $install_dir/lan-hosts --filter $install_dir/drop-all.ef \
          -M arp:remote /10.20.30.1// /10.20.30.33\;10.20.30.85\;10.20.30.123\;10.20.30.127\;10.20.30.133\;10.20.30.135\;10.20.30.247//
