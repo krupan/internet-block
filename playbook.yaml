@@ -1,0 +1,110 @@
+- name: setup internet blocking on a schedule
+  hosts: pihole
+  become: yes
+  tasks:
+    
+    - name: create/update internet-stop.service
+      blockinfile:
+        path: /etc/systemd/system/internet-stop.service
+        create: yes
+        block: |
+          [Unit]
+          Description=Block internet for listed hosts
+
+          [Service]
+          Type=forking
+          ExecStart=ettercap -Tz --daemon --log-msg /var/log/ettercap.log \
+                    -j /home/pi/internet-block/lan-hosts \
+                    --filter /home/pi/internet-block/drop-all.ef \
+                    -M arp:remote /10.20.30.1// \
+                    /10.20.30.33\;10.20.30.85\;10.20.30.123\;10.20.30.127\;10.20.30.133\;10.20.30.135\;10.20.30.247//
+
+    - name: create/update internet-stop.timer
+      blockinfile:
+        path: /etc/systemd/system/internet-stop.timer
+        create: yes
+        block: |
+          [Unit]
+          Description=Stop internet every night
+          
+          [Timer]
+          OnCalendar=*-*-* 22:00:00
+          Persistent=true
+          
+          [Install]
+          WantedBy=timers.target
+
+    - name: craete/update internet-start.service
+      blockinfile:
+        path: /etc/systemd/system/internet-start.service
+        create: yes
+        block: |
+          [Unit]
+          Description=Unblock internet for all hosts
+
+          [Service]
+          Type=oneshot
+          ExecStart=systemctl stop internet-stop.service
+
+    - name: create/update internet-start.timer
+      blockinfile:
+        path: /etc/systemd/system/internet-start.timer
+        create: yes
+        block: |
+          [Unit]
+          Description=Start internet every morning
+          
+          [Timer]
+          OnCalendar=*-*-* 4:00:00
+          Persistent=true
+          
+          [Install]
+          WantedBy=timers.target
+
+    - name: Just force systemd to reread
+      systemd:
+        daemon_reload: yes
+
+    - name: enable and start internet-start.timer
+      systemd:
+        name: internet-start.timer
+        state: started
+        enabled: yes
+
+    - name: enable and start internet-stop.timer
+      systemd:
+        name: internet-stop.timer
+        state: started
+        enabled: yes
+
+    - name: create/update logrotate config file for ettercap log
+      blockinfile:
+        path: /etc/logrotate.d/ettercap
+        create: yes
+        block: |
+          /var/log/apt/ettercap.log {
+              rotate 12
+              monthly
+              compress
+              missingok
+              notifempty
+          }
+
+    - name: create directory for storing this stuff
+      file:
+        path: /home/pi/internet-block
+        state: directory
+
+    - name: create/update ettercap filter
+      blockinfile:
+        path: /home/pi/internet-block/drop-all.ecf
+        create: yes
+        block: drop();
+
+    - name: compile filter
+      command: etterfilter /home/pi/internet-block/drop-all.ecf -o /home/pi/internet-block/drop-all.ef
+
+    - name: copy hosts file
+      copy:
+        src: lan-hosts
+        dest: /home/pi/internet-block/lan-hosts
