@@ -17,7 +17,7 @@
                     -j /home/pi/internet-block/lan-hosts \
                     --filter /home/pi/internet-block/drop-all.ef \
                     -M arp:remote /10.20.30.1// \
-                    /10.20.30.33\;10.20.30.85\;10.20.30.123\;10.20.30.127\;10.20.30.133\;10.20.30.135\;10.20.30.247//
+                    /10.20.30.33;10.20.30.85;10.20.30.123;10.20.30.127;10.20.30.135;10.20.30.247//
 
     - name: create/update internet-stop.timer
       blockinfile:
@@ -34,7 +34,7 @@
           [Install]
           WantedBy=timers.target
 
-    - name: craete/update internet-start.service
+    - name: create/update internet-start.service
       blockinfile:
         path: /etc/systemd/system/internet-start.service
         create: yes
@@ -61,7 +61,7 @@
           [Install]
           WantedBy=timers.target
 
-    - name: Just force systemd to reread
+    - name: systemd daemon-reload
       systemd:
         daemon_reload: yes
 
@@ -89,6 +89,13 @@
               missingok
               notifempty
           }
+      register: logrotate
+
+    - name: restart logrotate to pick up our changes
+      systemd:
+        name: logrotate.service
+        state: restarted
+        when: logrotate.changed
 
     - name: create directory for storing this stuff
       file:
@@ -100,9 +107,11 @@
         path: /home/pi/internet-block/drop-all.ecf
         create: yes
         block: drop();
+      register: filter
 
     - name: compile filter
       command: etterfilter /home/pi/internet-block/drop-all.ecf -o /home/pi/internet-block/drop-all.ef
+      when: filter.changed
 
     - name: copy hosts file
       copy:
