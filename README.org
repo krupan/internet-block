@@ -1,0 +1,17 @@
+* Internet Block
+
+Block Internet access for a list of devices on your LAN on a given schedule.  For a much longer introduction and more explanation, see [[https://bryan-murdock.blogspot.com/2020/10/effectively-internet-filtering-in-2020.html][my blog post about this]].  The short summary is, this sets up ettercap to block internet using an ARP based man-in-middle attack.  It runs ettercap on a schedule so you can, for example, block your kids devices during the hours when you wish they were sleeping.  You can run set this up on any old computer running Linux.  It can be a very low-power device like an old computer or Raspberry Pi.
+
+You will need to edit =lan-hosts= to have the list of hosts you want to block and your gateway.  You will also need to edit =internet-stop.service=.  Replace the first IP address with the address of your gateway, and the list of IP addresses with the list of IP addresses you want to block.  This assumes that the IP addresses of the devices you want to block will not change over time.  I believe you could use MAC addresses instead of IP addresses, but I haven't tested this.
+
+Also edit =internet-stop.timer= and =internet.start.timer= to adjust the start and stop times, if you want.
+
+You'll also need to edit ansible-host and put in the hostname of the machine you are going to install this on.  Create a =~/.ssh/config= file if you need to use a username other than your own or a special ssh key to access the machine.
+
+Once you have edited the files, run:
+
+#+begin_src sh
+  ansible-playbook -i ansible-host playbook.yaml
+#+end_src
+
+It will set up the systemd services and timers to block internet during the hours you chose.
