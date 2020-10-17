@@ -6,6 +6,8 @@ You will need to edit =lan-hosts= to have the list of hosts you want to block an
 
 Also edit =internet-stop.timer= and =internet.start.timer= to adjust the start and stop times, if you want.
 
+Also edit playbook.yaml and replace =/home/pi= with the path to your user's home directory on the device you are installing this on.
+
 You'll also need to edit ansible-host and put in the hostname of the machine you are going to install this on.  Create a =~/.ssh/config= file if you need to use a username other than your own or a special ssh key to access the machine.
 
 Once you have edited the files, run:
