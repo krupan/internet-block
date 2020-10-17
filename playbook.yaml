@@ -95,7 +95,7 @@
       systemd:
         name: logrotate.service
         state: restarted
-        when: logrotate.changed
+      when: logrotate.changed
 
     - name: create directory for storing this stuff
       file:
