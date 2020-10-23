@@ -65,18 +65,6 @@
       systemd:
         daemon_reload: yes
 
-    - name: enable and start internet-start.timer
-      systemd:
-        name: internet-start.timer
-        state: started
-        enabled: yes
-
-    - name: enable and start internet-stop.timer
-      systemd:
-        name: internet-stop.timer
-        state: started
-        enabled: yes
-
     - name: create/update logrotate config file for ettercap log
       blockinfile:
         path: /etc/logrotate.d/ettercap
@@ -90,12 +78,6 @@
               notifempty
           }
       register: logrotate
-
-    - name: restart logrotate to pick up our changes
-      systemd:
-        name: logrotate.service
-        state: restarted
-      when: logrotate.changed
 
     - name: create directory for storing this stuff
       file:
@@ -117,3 +99,22 @@
       copy:
         src: lan-hosts
         dest: /home/pi/internet-block/lan-hosts
+
+    - name: enable and start internet-stop.timer
+      systemd:
+        name: internet-stop.timer
+        state: started
+        enabled: yes
+
+    - name: enable and start internet-start.timer
+      systemd:
+        name: internet-start.timer
+        state: started
+        enabled: yes
+
+    - name: restart logrotate to pick up our changes
+      systemd:
+        name: logrotate.service
+        state: restarted
+      when: logrotate.changed
+
